@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: supermarket-db
+    environment:
+      POSTGRES_DB: supermarket
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d supermarket"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  cash-register-service:
+    build:
+      context: ./cash-register-service
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/supermarket
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8001:8000"
+
+  analytics-service:
+    build:
+      context: ./analytics-service
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/supermarket
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8002:8000"
+
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: supermarket-frontend
+    depends_on:
+      - cash-register-service
+      - analytics-service
+    ports:
+      - "5173:5173"
+
+volumes:
+  db-data:
