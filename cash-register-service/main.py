@@ -14,13 +14,17 @@ async def lifespan(app: FastAPI):
 
     db = SessionLocal()
     try:
-        load_data_main(db)
+        load_data_main()
     finally:
         db.close()
 
     yield
 
-app = FastAPI(title="Cash Register Service")
+app = FastAPI(
+    title="Cash Register Service",
+    lifespan=lifespan,
+)
+
 
 origins = [
     "http://localhost:5173",
