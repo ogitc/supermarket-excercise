@@ -8,7 +8,8 @@ from api import router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Initializing database schema...")
+    # Ensure database schema exists (tables are created by db-init container)
+    print("Verifying database schema...")
     init_db()
     yield
 

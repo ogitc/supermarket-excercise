@@ -27,6 +27,12 @@ def wait_for_db(max_retries: int = 20, delay_seconds: int = 1) -> None:
 
 
 def load_products(db: Session) -> None:
+    # Check if products already exist
+    existing_count = db.query(models.Product).count()
+    if existing_count > 0:
+        print(f"✔ Products already loaded ({existing_count} products found), skipping...")
+        return
+
     with open(PRODUCTS_CSV, newline="", encoding="utf-8-sig") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
@@ -40,6 +46,12 @@ def load_products(db: Session) -> None:
 
 
 def load_purchases(db: Session) -> None:
+    # Check if purchases already exist
+    existing_count = db.query(models.Purchase).count()
+    if existing_count > 0:
+        print(f"✔ Purchases already loaded ({existing_count} purchases found), skipping...")
+        return
+
     with open(PURCHASES_CSV, newline="", encoding="utf-8-sig") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:

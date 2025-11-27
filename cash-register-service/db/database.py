@@ -16,15 +16,24 @@ Base = declarative_base()
 
 
 def init_db():
+    """
+    Initialize database schema by creating tables if they don't exist.
+    
+    Note: The db-init container creates tables and loads initial data first.
+    This function ensures tables exist as a safety measure, handling any
+    race conditions that might occur if services start before db-init completes.
+    """
     from . import models
     try:
         Base.metadata.create_all(bind=engine, checkfirst=True)
     except (ProgrammingError, OperationalError, IntegrityError) as e:
-        # If there is a race condition, the other service will retry and succeed.
+        # Handle race conditions: tables might be created by db-init or another service
         error_str = str(e).lower()
         if any(keyword in error_str for keyword in ["already exists", "duplicate key", "pg_type_typname"]):
+            # Table creation conflict - safe to ignore, tables already exist
             pass
         else:
+            # Re-raise unexpected errors
             raise
 
 def get_db():

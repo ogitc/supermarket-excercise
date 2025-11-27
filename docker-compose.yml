@@ -16,6 +16,17 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
 
+  db-init:
+    build:
+      context: .
+      dockerfile: db-init/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/supermarket
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   cash-register-service:
     build:
       context: ./cash-register-service
@@ -24,6 +35,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     ports:
       - "8001:8000"
 
@@ -35,6 +48,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     ports:
       - "8002:8000"
 
