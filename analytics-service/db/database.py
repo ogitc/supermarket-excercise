@@ -27,13 +27,10 @@ def init_db():
     try:
         Base.metadata.create_all(bind=engine, checkfirst=True)
     except (ProgrammingError, OperationalError, IntegrityError) as e:
-        # Handle race conditions: tables might be created by db-init or another service
         error_str = str(e).lower()
         if any(keyword in error_str for keyword in ["already exists", "duplicate key", "pg_type_typname"]):
-            # Table creation conflict - safe to ignore, tables already exist
             pass
         else:
-            # Re-raise unexpected errors
             raise
 
 
