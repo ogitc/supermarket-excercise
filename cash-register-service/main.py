@@ -1,7 +1,24 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
+from db.database import SessionLocal, init_db
 from api import router
+from load_data import main as load_data_main
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Initializing database schema...")
+    init_db()
+
+    db = SessionLocal()
+    try:
+        load_data_main(db)
+    finally:
+        db.close()
+
+    yield
 
 app = FastAPI(title="Cash Register Service")
 
